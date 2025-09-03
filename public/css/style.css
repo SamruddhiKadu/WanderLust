@@ -1,0 +1,136 @@
+body{
+    font-family: "Plus Jakarta Sans", sans-serif;
+    display:flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+}
+
+
+/* Navbar */
+
+.navbar{
+    height : 5rem;
+    background-color: #fff;
+}
+
+.fa-compass {
+    color : #fe424d;
+    font-size : 2rem;
+    width : 10%;
+}
+
+.nav-link {
+    color : #222222 !important; /* important so that style.css override the bootstrap*/
+}
+
+/* Footer */
+
+.container {
+    flex: 1;   /*footer to stick to the bottom*/
+}
+.f-info-links a {
+    text-decoration: none;
+    color : #222222;
+}
+
+.f-info-links a:hover {
+    text-decoration: underline;
+}
+
+.f-info-links , .f-info-socials , .f-info-bran{
+    width : 100%; 
+    display : flex;
+    align-items: center;
+    justify-content: center;
+}
+   
+.f-info-socials i {
+    font-size: 1.2rem;
+    margin-right: 1rem;
+}
+
+.f-info {
+    text-align : center;
+    height: 8rem;
+    background-color: #ebebeb;
+    display : flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Cards */
+
+.listing-card {
+    border : none ;
+    margin-bottom : 2rem;
+}
+
+.card-img-top {
+     border-radius : 4 rem;
+     width : 100%;
+     object-fit : cover;
+
+}
+
+.card-body {
+    border-radius : 2 rem;
+    padding : 0;
+}
+
+.card-text p {
+    font-weight : 400;
+
+}
+
+.listing-link {
+    text-decoration: none;
+}
+
+/* Card Effect */
+
+.card-img-overlay {
+    opacity: 0;
+}
+.card-img-overlay:hover {
+    opacity: 0.2;
+    background-color: #fff;
+}
+
+/* new page*/
+
+.add-btn{
+     background-color:  #fe424d;
+     border : none;
+}
+
+/* edit page*/
+
+.edit-btn{
+     background-color:  #fe424d;
+     border : none;
+}
+
+/* Show page */
+
+.show-img{
+    height : 30vh;
+}
+
+.btns{
+    display : flex;
+
+}
+
+.show-card{
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/*Map*/
+
+#map {
+    height : 400px;
+    width : 80vh;
+}
