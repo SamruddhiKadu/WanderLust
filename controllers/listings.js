@@ -149,60 +149,61 @@ module.exports.renderEditForm = async (req, res) => {
 
 
 
-module.exports.updateListing = async (req, res) => {
+module.exports.updateListing = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { location, country, ...rest } = req.body.listing;
 
-    const listing = await Listing.findById(id);
-    if (!listing) {
-      req.flash("error", "Listing not found.");
-      return res.redirect("/listings");
-    }
+    // Geocode location with proper User-Agent
+    async function geocodeLocation(locationQuery) {
+      try {
+        const response = await axios.get("https://nominatim.openstreetmap.org/search", {
+          params: {
+            q: locationQuery,
+            format: "json",
+            limit: 1,
+          },
+          headers: {
+            "User-Agent": "WanderlustApp/1.0 (your-email@example.com)", // required
+            "Accept-Language": "en",
+          },
+        });
 
-    // 🗺️ Convert location + country to coordinates
-    let coordinates = listing.geometry.coordinates;
-    if (location && country) {
-      const geoResponse = await axios.get("https://nominatim.openstreetmap.org/search", {
-        params: {
-          q: `${location}, ${country}`,
-          format: "json",
-          limit: 1,
-        },
-      });
-
-      if (geoResponse.data.length > 0) {
-        coordinates = [
-          parseFloat(geoResponse.data[0].lon),
-          parseFloat(geoResponse.data[0].lat),
-        ];
+        if (response.data && response.data.length > 0) {
+          return [
+            parseFloat(response.data[0].lon),
+            parseFloat(response.data[0].lat),
+          ];
+        }
+        return null;
+      } catch (err) {
+        console.error("Geocoding error:", err.message);
+        return null;
       }
     }
 
-    // 🖼️ Update image if new file is uploaded
-    if (req.file) {
-      listing.image = {
-        url: req.file.path,
-        filename: req.file.filename,
-      };
-    }
+    // Get coordinates or fallback
+    let coordinates = await geocodeLocation(`${location}, ${country}`);
+    if (!coordinates) coordinates = [77.2090, 28.6139]; // fallback: New Delhi
 
-    // 📝 Update listing fields
-    listing.location = location;
-    listing.country = country;
-    listing.geometry = { type: "Point", coordinates };
-    for (let key in rest) {
-      listing[key] = rest[key];
-    }
+    // Update listing
+    const updatedListing = await Listing.findByIdAndUpdate(
+      id,
+      {
+        ...rest,
+        location,
+        country,
+        geometry: { type: "Point", coordinates },
+      },
+      { new: true, runValidators: true }
+    );
 
-    await listing.save();
-
-    req.flash("success", "Listing Updated!");
-    res.redirect("/listings");
+    req.flash("success", "Listing updated successfully!");
+    res.redirect(`/listings/${id}`);
   } catch (err) {
-    console.error("Update Error:", err);
-    req.flash("error", "Error updating listing.");
-    res.redirect("/listings");
+    console.error(err);
+    req.flash("error", "Something went wrong while updating the listing.");
+    res.redirect(`/listings/${req.params.id}/edit`);
   }
 };
 
