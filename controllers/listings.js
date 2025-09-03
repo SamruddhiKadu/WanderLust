@@ -24,34 +24,49 @@ module.exports.showListing = async(req,res) => {
         req.flash("error", "listing you requested for does not exist");
          res.redirect("/listings");
     }
-    console.log(listing);
+    // console.log(listing);
     res.render("listings/show.ejs", {listing});
 };
 
 
+
 module.exports.createListing = async (req, res, next) => {
   try {
-    let url = req.file.path;
-    let filename = req.file.filename;
-
+    const url = req.file.path;
+    const filename = req.file.filename;
     const { location, country, ...rest } = req.body.listing;
 
-    // 🗺️ Use Nominatim to get coordinates
-    const geoResponse = await axios.get("https://nominatim.openstreetmap.org/search", {
-      params: {
-        q: `${location}, ${country}`,
-        format: "json",
-        limit: 1,
-      },
-    });
+    // 🗺️ Geocode location with proper User-Agent
+    async function geocodeLocation(locationQuery) {
+      try {
+        const response = await axios.get("https://nominatim.openstreetmap.org/search", {
+          params: {
+            q: locationQuery,
+            format: "json",
+            limit: 1,
+          },
+          headers: {
+            "User-Agent": "WanderlustApp/1.0 (your-email@example.com)", // required
+            "Accept-Language": "en",
+          },
+        });
 
-    let coordinates = [77.2090, 28.6139]; // fallback: New Delhi
-    if (geoResponse.data.length > 0) {
-      coordinates = [
-        parseFloat(geoResponse.data[0].lon),
-        parseFloat(geoResponse.data[0].lat),
-      ];
+        if (response.data && response.data.length > 0) {
+          return [
+            parseFloat(response.data[0].lon),
+            parseFloat(response.data[0].lat),
+          ];
+        }
+        return null;
+      } catch (err) {
+        console.error("Geocoding error:", err.message);
+        return null;
+      }
     }
+
+    // Get coordinates or fallback
+    let coordinates = await geocodeLocation(`${location}, ${country}`);
+    if (!coordinates) coordinates = [77.2090, 28.6139]; // fallback: New Delhi
 
     // Create new listing
     const newListing = new Listing({
