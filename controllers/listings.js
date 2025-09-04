@@ -113,7 +113,6 @@ module.exports.createListing = async (req, res, next) => {
 //     originalImageUrl = originalImageUrl.replace("/upload", "/upload/h_300,w_250");
 //     res.render("listings/edit.ejs",{ listing, originalImageUrl });
 // };
-
 module.exports.renderEditForm = async (req, res) => {
   const { id } = req.params;
   const listing = await Listing.findById(id);
@@ -154,15 +153,13 @@ module.exports.updateListing = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { location, country, ...rest } = req.body.listing;
-
-    if (req.file) {
-    updatedListing.image = {
-    url: req.file.path,
-    filename: req.file.filename,
-    } ;
-    await updatedListing.save();
-   }
-
+    
+    if(typeof  req.file  != "undefined") {
+    let url = req.file.path;
+    let filename = req.file.filename; 
+    listing.image = {url , filename};
+    await listing.save();
+    }
 
     // Geocode location with proper User-Agent
     async function geocodeLocation(locationQuery) {
