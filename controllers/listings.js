@@ -154,12 +154,7 @@ module.exports.updateListing = async (req, res, next) => {
     const { id } = req.params;
     const { location, country, ...rest } = req.body.listing;
     
-    if(typeof  req.file  != "undefined") {
-    let url = req.file.path;
-    let filename = req.file.filename; 
-    listing.image = {url , filename};
-    await listing.save();
-    }
+    
 
     // Geocode location with proper User-Agent
     async function geocodeLocation(locationQuery) {
@@ -204,6 +199,15 @@ module.exports.updateListing = async (req, res, next) => {
       },
       { new: true, runValidators: true }
     );
+
+          if (req.file) {
+            updatedListing.image = {
+            url: req.file.path,
+            filename: req.file.filename,
+            };
+            await updatedListing.save();
+          }
+
 
     req.flash("success", "Listing updated successfully!");
     res.redirect(`/listings/${id}`);
