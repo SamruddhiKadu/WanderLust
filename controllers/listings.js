@@ -1,10 +1,34 @@
 const Listing = require("../models/listing.js");
 const axios = require("axios"); // install with: npm install axios
 
-module.exports.index = async (req,res) =>{
-    const allListings = await Listing.find({});
-    res.render("listings/index.ejs" , {allListings});
+// module.exports.index = async (req,res) =>{
+//     const allListings = await Listing.find({});
+//     res.render("listings/index.ejs" , {allListings});
+// };
+
+module.exports.index = async (req, res) => {
+  const { q } = req.query;
+  let listings;
+
+  if (q) {
+    const regex = new RegExp(q, "i"); // case-insensitive search
+    listings = await Listing.find({
+      $or: [
+        { title: regex },
+        { location: regex },
+        { country: regex }
+      ]
+    });
+  } else {
+    listings = await Listing.find({});
+  }
+  if (listings.length === 0) {
+  req.flash("error", "No listings found for your search.");
+  return res.redirect("/listings");
+  }
+  res.render("listings/index.ejs", { allListings: listings, searchQuery: q || "" });
 };
+
 
 module.exports.renderNewForm =(req,res) => {
     
